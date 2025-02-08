@@ -22,7 +22,7 @@ const (
 	ChallengeSize   = 6
 	KeySize         = chacha20poly1305.KeySize
 	SessionKeySize  = chacha20poly1305.KeySize
-	SessionDuration = 15 * time.Minute
+	SessionDuration = 30 * time.Second
 )
 
 func init() {
