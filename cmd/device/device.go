@@ -7,7 +7,6 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"math/big"
 	"net/http"
 	"path/filepath"
 	"slices"
@@ -38,13 +37,7 @@ func main() {
 	}
 
 	dev := NewDevice(id, v)
-	interval, err := rand.Int(rand.Reader, big.NewInt(30))
-	if err != nil {
-		interval = big.NewInt(5)
-	}
-	interval.Add(interval, big.NewInt(1))
-	tui.Infof("will send a report every %d seconds", interval)
-	for range time.Tick(time.Duration(interval.Int64()) * time.Second) {
+	for range time.Tick(300 * time.Millisecond) {
 		report := time.Now().Local().Format(time.RFC3339)
 		if err := dev.SendReport(":8177", report); err != nil {
 			tui.Warningf("failed to send report: %v", err)
