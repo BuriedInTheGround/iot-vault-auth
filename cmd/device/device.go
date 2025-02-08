@@ -8,7 +8,10 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"path/filepath"
+	"runtime"
+	"runtime/pprof"
 	"slices"
 	"strings"
 	"time"
@@ -17,12 +20,39 @@ import (
 	"github.com/BuriedInTheGround/iot-vault-auth/internal/vault"
 )
 
+var (
+	cpuprofile = flag.String("cpuprofile", "", "write cpu profile to `file`")
+	memprofile = flag.String("memprofile", "", "write memory profile to `file`")
+)
+
 func main() {
+	runtime.MemProfileRate = 1
+
 	tui.ProgramName = "device"
 	flag.Parse()
 
 	if len(flag.Args()) != 1 {
 		tui.Errorf("missing vault file path")
+	}
+
+	if *cpuprofile != "" {
+		f, err := os.Create(*cpuprofile)
+		if err != nil {
+			tui.Errorf("could not create CPU profile: %v", err)
+		}
+		defer func() {
+			if err := f.Close(); err != nil {
+				tui.Errorf("could not close CPU profile file: %v", err)
+			}
+		}()
+		if err := pprof.StartCPUProfile(f); err != nil {
+			tui.Errorf("could not start CPU profile: %v", err)
+		}
+		defer func() {
+			pprof.StopCPUProfile()
+			tui.Infof("CPU profiling stopped")
+		}()
+		tui.Infof("CPU profiling started")
 	}
 
 	path := flag.Arg(0)
@@ -35,14 +65,38 @@ func main() {
 	if err != nil {
 		tui.Errorf("failed to read initial vault: %v", err)
 	}
-
 	dev := NewDevice(id, v)
+
+	var done bool
+	timeout := time.After(5 * time.Minute)
 	for range time.Tick(300 * time.Millisecond) {
-		report := time.Now().Local().Format(time.RFC3339)
-		if err := dev.SendReport(":8177", report); err != nil {
-			tui.Warningf("failed to send report: %v", err)
-		} else {
-			tui.Infof("sent report: %q", report)
+		select {
+		case <-timeout:
+			done = true
+		default:
+			report := time.Now().Local().Format(time.RFC3339)
+			if err := dev.SendReport(":8177", report); err != nil {
+				tui.Warningf("failed to send report: %v", err)
+			}
+		}
+		if done {
+			break
+		}
+	}
+
+	if *memprofile != "" {
+		f, err := os.Create(*memprofile)
+		if err != nil {
+			tui.Errorf("could not create memory profile: %v", err)
+		}
+		defer func() {
+			if err := f.Close(); err != nil {
+				tui.Errorf("could not close memory profile file: %v", err)
+			}
+		}()
+		runtime.GC()
+		if err := pprof.WriteHeapProfile(f); err != nil {
+			tui.Errorf("could not write memory profile: %v", err)
 		}
 	}
 }

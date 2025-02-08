@@ -24,6 +24,7 @@
             gopls
             gotools
             go-tools
+            graphviz
           ];
         };
       }

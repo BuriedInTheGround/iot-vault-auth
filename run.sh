@@ -35,7 +35,9 @@ for ((i = 1; i <= "$DEVICE_COUNT"; i++)); do
     DEVICE_ID=$(printf '%03d' "$i")
     VAULT_FILE="./build/${DEVICE_ID}.vault"
     LOG_FILE="./build/device${DEVICE_ID}.log"
-    ./build/device > "$LOG_FILE" "$VAULT_FILE" 2>&1 &
+    CPU_FILE="./build/cpu${DEVICE_ID}.prof"
+    MEM_FILE="./build/mem${DEVICE_ID}.prof"
+    ./build/device -cpuprofile "$CPU_FILE" -memprofile "$MEM_FILE" > "$LOG_FILE" "$VAULT_FILE" 2>&1 &
     echo "Device $DEVICE_ID started. See its logs at: $LOG_FILE"
 done
 
