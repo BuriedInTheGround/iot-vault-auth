@@ -98,6 +98,10 @@ func (v Vault) ComputeChallengeKey(encodedIndexes []byte) (Key, error) {
 }
 
 func (v Vault) Rotate(key []byte) error {
+	if len(key) < 32 {
+		return fmt.Errorf("key is too short, cannot provide enough security")
+	}
+
 	mac := hmac.New(sha256.New, key)
 	if _, err := mac.Write(v); err != nil {
 		return err
