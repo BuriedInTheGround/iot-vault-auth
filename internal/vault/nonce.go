@@ -1,8 +1,6 @@
 package vault
 
-import "golang.org/x/crypto/chacha20poly1305"
-
-const NonceSize = chacha20poly1305.NonceSize
+const NonceSize = 12
 
 type Nonce []byte
 
