@@ -2,9 +2,7 @@ package vault
 
 import (
 	"bytes"
-	"crypto/hmac"
 	"crypto/rand"
-	"crypto/sha256"
 	"crypto/subtle"
 	"encoding/gob"
 	"fmt"
@@ -13,6 +11,8 @@ import (
 	"os"
 	"slices"
 	"time"
+
+	"golang.org/x/crypto/sha3"
 )
 
 const (
@@ -100,12 +100,18 @@ func (v Vault) Rotate(key []byte) error {
 		return fmt.Errorf("key is too short, cannot provide enough security")
 	}
 
-	mac := hmac.New(sha256.New, key)
-	if _, err := mac.Write(v); err != nil {
+	k := 32 // 256-bit security strength
+	h := make([]byte, k)
+	d := sha3.NewShake256()
+	if _, err := d.Write(key); err != nil {
 		return err
 	}
-	h := mac.Sum(nil)
-	k := len(h)
+	if _, err := d.Write(v); err != nil {
+		return err
+	}
+	if _, err := d.Read(h); err != nil {
+		return err
+	}
 
 	j := len(v) / k
 	for i := range j {
