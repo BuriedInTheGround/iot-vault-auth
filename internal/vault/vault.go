@@ -13,15 +13,13 @@ import (
 	"os"
 	"slices"
 	"time"
-
-	"golang.org/x/crypto/chacha20poly1305"
 )
 
 const (
 	NumberOfKeys    = 8
 	ChallengeSize   = 6
-	KeySize         = chacha20poly1305.KeySize
-	SessionKeySize  = chacha20poly1305.KeySize
+	KeySize         = 32 // AES-256
+	SessionKeySize  = 32 // AES-256
 	SessionDuration = time.Second
 )
 

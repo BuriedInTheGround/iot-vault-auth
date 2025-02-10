@@ -1,11 +1,18 @@
 package vault
 
-import "golang.org/x/crypto/chacha20poly1305"
+import (
+	"crypto/aes"
+	"crypto/cipher"
+)
 
 type Key []byte
 
 func (k Key) Encrypt(plaintext []byte, additionalData []byte) ([]byte, error) {
-	aead, err := chacha20poly1305.New(k)
+	block, err := aes.NewCipher(k)
+	if err != nil {
+		return nil, err
+	}
+	aead, err := cipher.NewGCM(block)
 	if err != nil {
 		return nil, err
 	}
@@ -18,7 +25,11 @@ func (k Key) Encrypt(plaintext []byte, additionalData []byte) ([]byte, error) {
 }
 
 func (k Key) Decrypt(ciphertext []byte, additionalData []byte) ([]byte, error) {
-	aead, err := chacha20poly1305.New(k)
+	block, err := aes.NewCipher(k)
+	if err != nil {
+		return nil, err
+	}
+	aead, err := cipher.NewGCM(block)
 	if err != nil {
 		return nil, err
 	}
