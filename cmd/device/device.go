@@ -45,6 +45,7 @@ func main() {
 				tui.Errorf("could not close CPU profile file: %v", err)
 			}
 		}()
+		runtime.SetCPUProfileRate(500)
 		if err := pprof.StartCPUProfile(f); err != nil {
 			tui.Errorf("could not start CPU profile: %v", err)
 		}
@@ -68,7 +69,7 @@ func main() {
 	dev := NewDevice(id, v)
 
 	var done bool
-	timeout := time.After(5 * time.Minute)
+	timeout := time.After(10 * time.Minute)
 	for range time.Tick(300 * time.Millisecond) {
 		select {
 		case <-timeout:
