@@ -109,20 +109,11 @@ func (v Vault) Rotate(key []byte) error {
 	h := mac.Sum(nil)
 	k := len(h)
 
-	// Work on a copy of the vault for padding
-	old := make(Vault, len(v))
-	copy(old, v)
-
-	// Pad with zeros if needed
-	if rem := len(old) % k; rem != 0 {
-		old = append(old, bytes.Repeat([]byte{0}, k-rem)...)
-	}
-
-	j := len(old) / k
+	j := len(v) / k
 	for i := range j {
 		n := make([]byte, k)
 		big.NewInt(int64(i + 1)).FillBytes(n)
-		subtle.XORBytes(v[i*k:], old[i*k:], h)
+		subtle.XORBytes(v[i*k:], v[i*k:], h)
 		subtle.XORBytes(v[i*k:], v[i*k:], n)
 	}
 	return nil
