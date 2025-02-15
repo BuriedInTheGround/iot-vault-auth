@@ -69,7 +69,7 @@ func main() {
 	dev := NewDevice(id, v)
 
 	var done bool
-	timeout := time.After(10 * time.Minute)
+	timeout := time.After(20 * time.Minute)
 	for range time.Tick(300 * time.Millisecond) {
 		select {
 		case <-timeout:
